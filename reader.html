@@ -114,9 +114,27 @@ const VERCEL_API_URL = "https://yt-polonizator-backend.vercel.app/api/captions";
     }
 
     async function fetchRealSubtitles(videoId) {
-      document.getElementById('subtitleBox').innerText = "Pobieranie napisów...";
-      fetchedSubtitles = [];
-      lastSpokenIndex = -1;
+  document.getElementById('subtitleBox').innerText = "Pobieranie napisów...";
+  fetchedSubtitles = [];
+  lastSpokenIndex = -1;
+
+  try {
+    const response = await fetch(`${VERCEL_API_URL}?videoId=${videoId}`);
+    if (!response.ok) throw new Error("Błąd odpowiedzi serwera");
+    
+    const data = await response.json();
+    if (data && data.length > 0) {
+      fetchedSubtitles = data;
+      document.getElementById('subtitleBox').innerText = "Napisy gotowe! Włącz film.";
+    } else {
+      document.getElementById('subtitleBox').innerText = "Brak dostępnych napisów.";
+    }
+  } catch (err) {
+    console.error(err);
+    document.getElementById('subtitleBox').innerText = "Błąd pobierania napisów z serwera.";
+  }
+}
+
 
       // Lista bezpłatnych instancji API do wyciągania napisów
       const endpoints = [

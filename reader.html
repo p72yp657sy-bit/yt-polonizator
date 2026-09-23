@@ -281,12 +281,36 @@ const VERCEL_API_URL = "https://yt-polonizator-backend.vercel.app/api/captions";
       }
     }
 
-    function extractVideoId(rawInput) {
-      if (!rawInput) return null;
-      let clean = rawInput.replace(/[\[\]\s]/g, '');
-      const reg = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-      const match = clean.match(reg);
-      return match ? match[1] : null;
+    function extractVideoId(url) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
+async function fetchRealSubtitles(videoId) {
+  const box = document.getElementById('subtitleBox');
+  box.innerText = "Pobieranie napisów z serwera...";
+  fetchedSubtitles = [];
+  lastSpokenIndex = -1;
+
+  try {
+    const res = await fetch(`${VERCEL_API_URL}?videoId=${videoId}`);
+    if (!res.ok) throw new Error("Błąd sieci");
+    const data = await res.json();
+    
+    if (Array.isArray(data) && data.length > 0) {
+      fetchedSubtitles = data;
+      box.innerText = "Napisy pobrane! Włącz odtwarzanie filmu.";
+    } else {
+      box.innerText = "Nie znaleziono napisów dla tego filmu.";
+    }
+  } catch (err) {
+    console.error(err);
+    box.innerText = "Błąd połączenia z serwerem napisów.";
+  }
+}
+
     }
 
     async function pasteFromClipboard() {

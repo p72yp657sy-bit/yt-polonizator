@@ -229,7 +229,7 @@
             document.getElementById('subtitle-box').innerText = 'Ładowanie napisów...';
             
             try {
-                const res = await fetch(`${VERCEL_API_URL}/captions?videoId=${videoId}`);
+                const res = await fetch(`${VERCEL_API_URL}/translate?videoId=${videoId}`);
                 if (!res.ok) throw new Error('Brak napisów');
                 
                 const xmlText = await res.text();

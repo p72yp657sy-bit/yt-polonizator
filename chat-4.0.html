@@ -217,12 +217,12 @@
             playerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
         }
 
-        async function requestSongLyrics() {
-            const query = document.getElementById('song-input').value.trim();
-            if (!query) {
-                alert("Wpisz tytuł lub wykonawcę!");
-                return;
-            }
+       async function requestSongLyrics() {
+    console.log("Funkcja wysyłania została wywołana!");
+    const query = document.getElementById('song-input').value.trim();
+    // ... dalsza część kodu
+}
+
 
             document.getElementById('status').innerText = `Wysyłanie zapytania do Vercela dla: "${query}"...`;
             

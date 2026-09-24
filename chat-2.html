@@ -137,21 +137,19 @@
         }
         
         #subtitle-box { 
-            padding: 24px 20px; 
+            padding: 20px; 
             background: #121214; 
             border-radius: 12px; 
-            min-height: 130px; 
+            max-height: 220px;
+            overflow-y: auto;
             text-align: center; 
-            font-size: 20px; 
-            font-weight: 700; 
+            font-size: 16px; 
+            font-weight: 500; 
             color: #facc15; 
             border: 2px solid #3f3f46; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
             box-shadow: inset 0 2px 15px rgba(0,0,0,0.9), 0 6px 25px rgba(0,0,0,0.4);
-            line-height: 1.4;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            line-height: 1.5;
+            white-space: pre-line;
             word-break: break-word;
         }
         
@@ -164,7 +162,7 @@
     <div class="container">
         <div class="brand-header">
             <h1 class="brand-title">Polski YouTube</h1>
-            <div class="brand-subtitle">Wersja 2.2 – Automatyczne Napisy PL</div>
+            <div class="brand-subtitle">Wersja 2.3 – Inteligentny Tekst PL</div>
         </div>
         
         <div class="input-group">
@@ -183,8 +181,8 @@
             <div id="player"></div>
         </div>
         
-        <div id="status">Status: Gotowy do odtwarzania z napisami PL</div>
-        <div id="subtitle-box">Odtwarzacz automatycznie wymusza włączenie napisów w języku polskim.</div>
+        <div id="status">Status: Gotowy do odtwarzania</div>
+        <div id="subtitle-box">Wybierz utwór lub wpisz link, aby zobaczyć słowa piosenki poniżej.</div>
 
         <div class="nav-link">
             <a href="chat.html">← Wróć do chat.html</a>
@@ -204,9 +202,9 @@
                 videoId: 'wVyggTKDcOE',
                 playerVars: {
                     'autoplay': 0,
-                    'cc_load_policy': 1, // Wymusza włączenie napisów
-                    'hl': 'pl',          // Język interfejsu odtwarzacza
-                    'cc_lang_pref': 'pl' // Preferowany język napisów
+                    'cc_load_policy': 1,
+                    'hl': 'pl',
+                    'cc_lang_pref': 'pl'
                 },
                 events: {}
             });
@@ -221,15 +219,38 @@
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        function loadVideo(videoId) {
+        async function fetchLyrics(title) {
+            const subtitleBox = document.getElementById('subtitle-box');
+            subtitleBox.innerText = 'Pobieranie tekstu i tłumaczenia...';
+            
+            try {
+                // Odpytujemy backend o tekst utworu
+                const res = await fetch(`${VERCEL_API_URL}/lyrics?title=${encodeURIComponent(title)}`);
+                const data = await res.json();
+                
+                if (data && data.lyrics) {
+                    subtitleBox.innerText = data.lyrics;
+                } else {
+                    subtitleBox.innerText = 'Brak dostępnego tekstu w bazie dla tego utworu. Korzystaj z napisów w odtwarzaczu powyżej!';
+                }
+            } catch (e) {
+                subtitleBox.innerText = 'Nie udało się pobrać tekstu. Skorzystaj z napisów w odtwarzaczu powyżej.';
+            }
+        }
+
+        function loadVideo(videoId, songTitle = '') {
             if (!videoId) return;
 
-            // Używamy loadVideoById z parametrami lub prostego ponownego osadzenia iframe z parametrami PL
             const playerContainer = document.querySelector('.player-container');
             playerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&cc_load_policy=1&hl=pl&cc_lang_pref=pl" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
             
-            document.getElementById('status').innerText = 'Status: Odtwarzanie z wymuszonymi napisami PL';
-            document.getElementById('subtitle-box').innerText = 'Film został uruchomiony z automatycznymi polskimi napisami.';
+            document.getElementById('status').innerText = 'Status: Odtwarzacz aktywny';
+
+            if (songTitle) {
+                fetchLyrics(songTitle);
+            } else {
+                document.getElementById('subtitle-box').innerText = 'Odtwarzacz gotowy. Sprawdź napisy wideo powyżej.';
+            }
         }
 
         function loadVideoFromInput() {
@@ -240,7 +261,7 @@
                 return;
             }
             document.getElementById('results-container').style.display = 'none';
-            loadVideo(videoId);
+            loadVideo(videoId, val);
         }
 
         async function searchSongs() {
@@ -259,26 +280,27 @@
             resultsBox.innerHTML = '<div class="result-item" style="justify-content:center; color:#a1a1aa;">Przeszukiwanie bazy utworów...</div>';
 
             try {
-                const response = statusRes = await fetch(`${VERCEL_API_URL}/search-v2?q=${encodeURIComponent(query)}`);
+                const response = await fetch(`${VERCEL_API_URL}/search-v2?q=${encodeURIComponent(query)}`);
                 const data = await response.json();
                 
                 if (!data.items || data.items.length === 0) {
                     throw new Error('Brak wyników');
                 }
 
-                resultsBox.innerHTML = '';
-                data.items.slice(0, 5).forEach(vid => {
-                    const div = document.createElement('div');
-                    div.className = 'result-item';
-                    div.innerHTML = `🎵 <b>${vid.title}</b> <span style="color:#71717a; font-size:12px;">(${vid.author})</span>`;
-                    
-                    div.onclick = () => {
-                        resultsBox.style.display = 'none';
-                        document.getElementById('url-input').value = `https://youtu.be/${vid.videoId}`;
-                        loadVideo(vid.videoId);
-                    };
-                    resultsBox.appendChild(div);
-                });
+            resultsBox.innerHTML = '';
+            data.items.slice(0, 5).forEach(vid => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML = `🎵 <b>${vid.title}</b> <span style="color:#71717a; font-size:12px;">(${vid.author})</span>`;
+                
+                div.onclick = () => {
+                    resultsBox.style.display = 'none';
+                    document.getElementById('url-input').value = `https://youtu.be/${vid.videoId}`;
+                    // Przekazujemy pełny tytuł do pobrania tekstu
+                    loadVideo(vid.videoId, `${vid.title} ${vid.author}`);
+                };
+                resultsBox.appendChild(div);
+            });
 
                 document.getElementById('status').innerText = 'Wybierz utwór z listy:';
             } catch (err) {

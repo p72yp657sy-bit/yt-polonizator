@@ -227,12 +227,15 @@
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        function loadVideo(videoId) {
-            if (!videoId) return;
-            const playerContainer = document.querySelector('.player-container');
-            playerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&cc_load_policy=1&hl=pl&cc_lang_pref=pl" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
-            document.getElementById('status').innerText = 'Status: Odtwarzacz aktywny';
-        }
+    function loadVideo(videoId) {
+    if (!videoId) return;
+    const playerContainer = document.querySelector('.player-container');
+    // Parametry cc_load_policy=1 i cc_lang_pref=pl włączają napisy po polsku, o ile są dostępne w filmie
+    playerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&cc_load_policy=1&hl=pl&cc_lang_pref=pl" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+    document.getElementById('status').innerText = 'Status: Odtwarzacz aktywny (używa napisów YouTube)';
+    document.getElementById('subtitle-box').innerText = 'Włącz napisy (CC) w odtwarzaczu powyżej i wybierz język polski, jeśli film go nie ustawił automatycznie.';
+}
+
 
         function loadVideoFromInput() {
             const val = document.getElementById('url-input').value;

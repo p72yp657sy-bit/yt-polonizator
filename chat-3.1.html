@@ -1,0 +1,58 @@
+<div class="input-group">
+    <button onclick="startListening()" style="background: #10b981; flex: 1;">🎙️ Włącz nasłuchiwanie AI</button>
+    <button onclick="translateTranscript()" style="background: #3b82f6;">🌐 Przetłumacz na Polski</button>
+</div>
+
+<script>
+    let recognition;
+    let rawTranscript = "";
+
+    function startListening() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert("Twoja przeglądarka nie wspiera funkcji rozpoznawania mowy.");
+            return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = 'en-US'; // Język oryginału (np. angielski)
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        const subtitleBox = document.getElementById('subtitle-box');
+        document.getElementById('status').innerText = 'Status: Nasłuchiwanie mowy...';
+
+        recognition.onresult = function(event) {
+            let interimTranscript = '';
+            rawTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    rawTranscript += event.results[i][0].transcript + ' ';
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+            
+            subtitleBox.innerText = rawTranscript + interimTranscript;
+        };
+
+        recognition.onerror = function(event) {
+            console.error(event.error);
+        };
+
+        recognition.start();
+    }
+
+    function translateTranscript() {
+        if (!rawTranscript) {
+            alert("Brak tekstu do przetłumaczenia!");
+            return;
+        }
+        
+        // Tutaj możemy przekazać surowy tekst do tłumaczenia
+        document.getElementById('status').innerText = 'Status: Tłumaczenie przetworzone';
+        document.getElementById('subtitle-box').innerText = "[Tłumaczenie PL]: " + rawTranscript; 
+        // W pełnej wersji podpięlibyśmy tu translator (np. API tłumaczące)
+    }
+</script>

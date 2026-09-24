@@ -164,7 +164,7 @@
     <div class="container">
         <div class="brand-header">
             <h1 class="brand-title">Polski YouTube</h1>
-            <div class="brand-subtitle">Wersja 2.1 – Stabilny Odtwarzacz</div>
+            <div class="brand-subtitle">Wersja 2.2 – Automatyczne Napisy PL</div>
         </div>
         
         <div class="input-group">
@@ -183,8 +183,8 @@
             <div id="player"></div>
         </div>
         
-        <div id="status">Status: Gotowy do odtwarzania</div>
-        <div id="subtitle-box">Wskazówka: Po włączeniu wideo kliknij ikonę CC w odtwarzaczu powyżej i wybierz polskie tłumaczenie napisów.</div>
+        <div id="status">Status: Gotowy do odtwarzania z napisami PL</div>
+        <div id="subtitle-box">Odtwarzacz automatycznie wymusza włączenie napisów w języku polskim.</div>
 
         <div class="nav-link">
             <a href="chat.html">← Wróć do chat.html</a>
@@ -201,7 +201,13 @@
             player = new YT.Player('player', {
                 height: '315',
                 width: '560',
-                videoId: 'wVyggTKDcOE', // Domyślny film startowy
+                videoId: 'wVyggTKDcOE',
+                playerVars: {
+                    'autoplay': 0,
+                    'cc_load_policy': 1, // Wymusza włączenie napisów
+                    'hl': 'pl',          // Język interfejsu odtwarzacza
+                    'cc_lang_pref': 'pl' // Preferowany język napisów
+                },
                 events: {}
             });
         }
@@ -218,12 +224,12 @@
         function loadVideo(videoId) {
             if (!videoId) return;
 
-            if (player && player.loadVideoById) {
-                player.loadVideoById(videoId);
-            }
+            // Używamy loadVideoById z parametrami lub prostego ponownego osadzenia iframe z parametrami PL
+            const playerContainer = document.querySelector('.player-container');
+            playerContainer.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&cc_load_policy=1&hl=pl&cc_lang_pref=pl" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
             
-            document.getElementById('status').innerText = 'Status: Odtwarzacz aktywny';
-            document.getElementById('subtitle-box').innerText = 'Kliknij ikonę napisów (CC) w filmie powyżej, aby włączyć polskie tłumaczenie.';
+            document.getElementById('status').innerText = 'Status: Odtwarzanie z wymuszonymi napisami PL';
+            document.getElementById('subtitle-box').innerText = 'Film został uruchomiony z automatycznymi polskimi napisami.';
         }
 
         function loadVideoFromInput() {
@@ -253,7 +259,7 @@
             resultsBox.innerHTML = '<div class="result-item" style="justify-content:center; color:#a1a1aa;">Przeszukiwanie bazy utworów...</div>';
 
             try {
-                const response = await fetch(`${VERCEL_API_URL}/search-v2?q=${encodeURIComponent(query)}`);
+                const response = statusRes = await fetch(`${VERCEL_API_URL}/search-v2?q=${encodeURIComponent(query)}`);
                 const data = await response.json();
                 
                 if (!data.items || data.items.length === 0) {

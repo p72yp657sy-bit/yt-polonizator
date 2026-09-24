@@ -271,7 +271,7 @@
             resultsBox.innerHTML = '<div class="result-item" style="justify-content:center; color:#a1a1aa;">Przeszukiwanie bazy utworów...</div>';
 
             try {
-                const response = await fetch(`${VERCEL_API_URL}/search?q=${encodeURIComponent(query)}`);
+                const response = await fetch(`${VERCEL_API_URL}/search-v2?q=${encodeURIComponent(query)}`);
                 const data = await response.json();
                 
                 if (!data.items || data.items.length === 0) {

@@ -206,7 +206,8 @@
     </div>
 
     <script>
-        const VERCEL_API_URL = "https://yt-polonizator-backend-rsbl.vercel.app/api";
+        const VERCEL_API_URL = "https://yt-polonizator-backend-rsbl.vercel.app";
+
 
 
         function loadVideo(videoId) {
@@ -226,7 +227,8 @@
             
             try {
                 // Wywołanie endpointu backendu na Vercelu (metoda POST)
-                const response = await fetch(`${VERCEL_API_URL}/lyrics`, {
+                const response = await fetch(`${VERCEL_API_URL}/api/lyrics`, {
+ {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
